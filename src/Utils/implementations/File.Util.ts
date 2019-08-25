@@ -12,7 +12,7 @@ export class FileUtil implements IFileUtil {
     private doSaveFile(content: string, pathIndex: number, ...paths: string[]): Observable<void> {
         if(pathIndex + 1 === paths.length - 1) {
             const path = Path.join(...paths);
-            return from(promisify(fs.writeFile)(content, path));
+            return from(promisify(fs.writeFile)(path, content));
         } else {
             return this.containsFile(paths[pathIndex], paths[pathIndex + 1])
                 .pipe(

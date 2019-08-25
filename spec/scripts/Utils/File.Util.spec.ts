@@ -57,7 +57,7 @@ test('Get File', (done) => {
         }
     })
 
-    mockImpl(fs.writeFile, (c: any,path: string,  callback: any) => {
+    mockImpl(fs.writeFile, (path: string, c: any, callback: any) => {
         expect(path).toBe(Path.join(root, path1, path2));
         expect(c).toBe(content);
         callback(null);
@@ -507,7 +507,7 @@ test('Save saveFile', (done) => {
     };
     const unsafePath = ['src', 'test', 'Test.txt'];
 
-    (<jest.Mock><any>fs.writeFile).mockImplementation((contents, path, callback) => {
+    (<jest.Mock><any>fs.writeFile).mockImplementation((path, contents, callback) => {
         console.log(path);
         expect(path.endsWith(filename)).toBeTruthy();
         expect(contents).toBe(content);
