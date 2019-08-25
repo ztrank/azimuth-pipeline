@@ -20,3 +20,5 @@ export function Bind(
     container.bind<Pipeline>(pipelineSymbol).to(pipeline);
     return container.get(pipelineSymbol);
 }
+
+export { PipelineSymbols }

@@ -9,14 +9,36 @@ import { injectable } from 'inversify';
 @injectable()
 export class FileUtil implements IFileUtil {
 
+    private doSaveFile(content: string, pathIndex: number, ...paths: string[]): Observable<void> {
+        if(pathIndex + 1 === paths.length - 1) {
+            const path = Path.join(...paths);
+            return from(promisify(fs.writeFile)(content, path));
+        } else {
+            return this.containsFile(paths[pathIndex], paths[pathIndex + 1])
+                .pipe(
+                    mergeMap(contains => {
+                        if(contains) {
+                            return this.doSaveFile(content, pathIndex + 1, ...paths);
+                        } else {
+                            return this.makeDir(paths[pathIndex], paths[pathIndex + 1])
+                                .pipe(
+                                    mergeMap(() => this.doSaveFile(content, pathIndex + 1, ...paths))
+                                )
+                        }
+                    })
+                )
+        }
+    }
+
     public getFile(root: string, ...paths: string[]): Observable<string> {
         const path = Path.join(root, ...paths);
         return from(promisify(fs.readFile)(path, {encoding: 'utf8'}));
     }
 
     public saveFile(content: string, root: string, ...paths: string[]): Observable<void> {
-        const path = Path.join(root, ...paths);
-        return from(promisify(fs.writeFile)(path, content));
+        /*const path = Path.join(root, ...paths);
+        return from(promisify(fs.writeFile)(path, content));*/
+        return this.doSaveFile(content, 0, root, ...paths);
     }
 
     public makeDir(parent: string, dirName: string): Observable<string> {

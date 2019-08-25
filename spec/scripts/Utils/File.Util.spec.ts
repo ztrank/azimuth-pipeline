@@ -35,10 +35,13 @@ test('Get File', (done) => {
 
     const fu = new FileUtil();
     fu.getFile(root, path1, path2)
-        .subscribe(file => {
-            expect(file).toBe('file!');
-            expect(fs.readFile).toHaveBeenCalledTimes(1);
-            done();
+        .subscribe({
+            next: file => {
+                expect(file).toBe('file!');
+                expect(fs.readFile).toHaveBeenCalledTimes(1);
+                done();
+            },
+            error: err => done(err)
         });
 });
 
@@ -48,7 +51,13 @@ test('Get File', (done) => {
     const path1 = 'src';
     const path2 = 'app.config.json';
 
-    mockImpl(fs.writeFile, (path: string, c: any, callback: any) => {
+    mockImpl(fs.readdir, (path: string, callback: any) => {
+        if(path === root) {
+            callback(undefined, ['src']);
+        }
+    })
+
+    mockImpl(fs.writeFile, (c: any,path: string,  callback: any) => {
         expect(path).toBe(Path.join(root, path1, path2));
         expect(c).toBe(content);
         callback(null);
@@ -56,9 +65,12 @@ test('Get File', (done) => {
 
     const fu = new FileUtil();
     fu.saveFile(content, root, path1, path2)
-        .subscribe(() => {
-            expect(fs.writeFile).toHaveBeenCalledTimes(1);
-            done();
+        .subscribe({
+            next: () => {
+                expect(fs.writeFile).toHaveBeenCalledTimes(1);
+                done();
+            },
+            error: done
         });
 });
 
@@ -483,3 +495,44 @@ test('Tranverse until', (done) => {
             done();
         });
 });
+
+test('Save saveFile', (done) => {
+    const root = 'root';
+    const filename = 'Test.txt';
+    const content = 'content';
+    const existing = {
+        root : ['src'],
+        src: [],
+        test: []
+    };
+    const unsafePath = ['src', 'test', 'Test.txt'];
+
+    (<jest.Mock><any>fs.writeFile).mockImplementation((contents, path, callback) => {
+        console.log(path);
+        expect(path.endsWith(filename)).toBeTruthy();
+        expect(contents).toBe(content);
+        callback();
+    });
+    (<jest.Mock><any>fs.readdir).mockImplementation((path: any, callback: any) => {
+        if(path.endsWith('root')) {
+            callback(undefined, existing.root);
+        } else if(path.endsWith('src')) {
+            callback(undefined, existing.src);
+        } else if(path.endsWith('test')) {
+            callback(undefined, existing.test);
+        }
+    });
+    (<jest.Mock><any>fs.mkdir).mockImplementation((path: any, callback: any) => {
+        callback();
+    });
+
+    const fileUitl = new FileUtil();
+    fileUitl.saveFile(content, root, ...unsafePath)
+        .subscribe(() => {
+            expect(fs.writeFile).toBeCalled();
+            expect(fs.readdir).toBeCalled();
+            expect(fs.mkdir).toBeCalled();
+            done();
+
+        });
+})
