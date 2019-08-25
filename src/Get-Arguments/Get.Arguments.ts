@@ -4,7 +4,7 @@ import { Runnable } from '../Pipeline/interfaces/Runnable';
 import { Observable, of } from 'rxjs';
 import { PipelineSymbols } from '../symbols';
 
-type ArgumentOption = {
+interface ArgumentOption {
     shortFlag: string;
     longFlag: string;
     description?: string;
