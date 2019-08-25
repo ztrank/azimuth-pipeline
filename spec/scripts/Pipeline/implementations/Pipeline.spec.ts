@@ -4,14 +4,21 @@ import { of } from 'rxjs';
 import { Container, injectable } from 'inversify';
 import { IFileUtil } from '../../../../src/Utils/interfaces';
 import { PipelineSymbols } from '../../../../src/symbols';
+import Path from 'path';
 
 const _root = 'C:\\Github\\post-install-pipeline';
+const _projectName = 'azimuth-pipeline';
+const _outerRoot = _root + '\\node_modules\\' + _projectName;
 const _fileUtil = {
     traverseBackUntil: jest.fn().mockImplementation((dir, indicators) => {
+        
         expect(dir).toBeDefined();
         expect(indicators).toBeDefined();
         expect(indicators).toBe('.git');
-        return of(_root);
+        if(dir === Path.dirname(_outerRoot)) {
+            return of(_root);
+        }
+        return of(_outerRoot);
     })
 }
 
@@ -40,7 +47,7 @@ beforeEach(() => {
 test('Run', (done) => {
     const container = new Container();
 
-    const pipeline = new PipelineImpl(<IFileUtil><any>_fileUtil);
+    const pipeline = new PipelineImpl(<IFileUtil><any>_fileUtil, _projectName);
     const item1 = new Runnable();
     item1.run.mockImplementation((...args: any[]) => {
         expect(args).toHaveLength(2);
@@ -74,6 +81,7 @@ test('Run', (done) => {
         .run(container)
         .subscribe({
             next: () => {
+                expect(_fileUtil.traverseBackUntil).toHaveBeenCalledTimes(2);
                 expect(container.isBound(PipelineSymbols.ProjectRoot));
                 expect(item1.run).toHaveBeenCalledTimes(1);
                 expect(item2.run).toHaveBeenCalledTimes(1);

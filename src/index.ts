@@ -10,11 +10,13 @@ export { Utils };
 
 export function Bind(
     container: Container,
+    projectName: string,
     pipeline: new (...args:any[]) => Pipeline = PipelineImpl,
     fileUtil: new (...args:any[]) => IFileUtil = FileUtil,
     jsonUtil: new (...args:any[]) => JsonUtil = JsonUtil
 ): Pipeline {
     const pipelineSymbol = Symbol.for('Pipeline');
+    container.bind<string>(PipelineSymbols.ProjectName).toConstantValue(projectName);
     container.bind<IFileUtil>(PipelineSymbols.FileUtil).to(fileUtil);
     container.bind<IJsonUtil>(PipelineSymbols.JSONUtil).to(jsonUtil);
     container.bind<Pipeline>(pipelineSymbol).to(pipeline);

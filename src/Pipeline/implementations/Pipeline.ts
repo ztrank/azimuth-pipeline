@@ -6,6 +6,7 @@ import { tap, mergeMap } from 'rxjs/operators';
 import { Pipeline } from '../interfaces/Pipeline';
 import { PipelineItem } from '../interfaces/Pipeline.Item';
 import { Runnable, RunnableConstructor } from '../interfaces/Runnable';
+import Path from 'path';
 
 @injectable()
 export class PipelineImpl implements Pipeline {
@@ -13,7 +14,8 @@ export class PipelineImpl implements Pipeline {
     public items: PipelineItem[] = [];
 
     public constructor(
-        @inject(PipelineSymbols.FileUtil) private fileUtil: IFileUtil
+        @inject(PipelineSymbols.FileUtil) private fileUtil: IFileUtil,
+        @inject(PipelineSymbols.ProjectName) private projectName: string
     ) {}
 
     register(container: Container, runnable: Runnable | RunnableConstructor, ...args: any[]): Pipeline {
@@ -34,6 +36,13 @@ export class PipelineImpl implements Pipeline {
     run(container: Container): Observable<void> {
         return this.fileUtil.traverseBackUntil(__dirname, '.git')
             .pipe(
+                mergeMap(root => {
+                    if(root.endsWith(this.projectName)) {
+                        return this.fileUtil.traverseBackUntil(Path.dirname(root), '.git');
+                    } else {
+                        return of(root);
+                    }
+                }),
                 tap(root => container.bind<string>(PipelineSymbols.ProjectRoot).toConstantValue(root)),
                 mergeMap(() => this.runItems(container))
             );
