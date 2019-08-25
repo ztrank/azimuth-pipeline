@@ -1,6 +1,6 @@
 {
   "author": "ztrank",
-  "name": "@trankzachary/azimuth-pipeline",
+  "name": "@trankzachary/pipeline",
   "description": "",
   "devDependencies": {
     "@babel/core": "^7.5.5",
