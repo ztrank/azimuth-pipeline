@@ -2,6 +2,7 @@ import commander from 'commander';
 import { injectable, Container } from 'inversify';
 import { Runnable } from '../Pipeline/interfaces/Runnable';
 import { Observable, of } from 'rxjs';
+import { PipelineSymbols } from '../symbols';
 
 type ArgumentOption = {
     shortFlag: string;
@@ -35,10 +36,12 @@ export class GetArguments implements Runnable {
             
         });
         commander.parse(argv);
+        const args: {[key:string]: any} = {};
 
         options.forEach(option => {
-            container.bind<string|boolean>(toCamelCase(option.longFlag.replace(/^-+/, ''))).toConstantValue(commander[toCamelCase(option.longFlag.replace(/^-+/, ''))]);
+            args[toCamelCase(option.longFlag.replace(/^-+/, ''))] = commander[toCamelCase(option.longFlag.replace(/^-+/, ''))];
         });
+        container.bind(PipelineSymbols.Argv).toConstantValue(args);
         return of(undefined);
     }
 }

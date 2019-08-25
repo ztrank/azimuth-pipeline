@@ -2,6 +2,7 @@ import { injectable, Container } from 'inversify';
 import { Runnable } from '../Pipeline/interfaces/Runnable';
 import { Observable, from } from 'rxjs';
 import inquirer from 'inquirer';
+import { PipelineSymbols } from '../symbols';
 
 interface Choice {
     name: string;
@@ -34,9 +35,7 @@ export class ReadHost implements Runnable {
         return from(
             prompt(questions)
             .then((answers: inquirer.Answers) => {
-                questions.forEach(question => {
-                    container.bind<boolean|number|string>(question.name).toConstantValue(answers[question.name]);
-                })
+                container.bind(PipelineSymbols.Answers).toConstantValue(answers);
             })
         )
     }
