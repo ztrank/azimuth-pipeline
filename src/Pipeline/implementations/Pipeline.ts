@@ -38,6 +38,7 @@ export class PipelineImpl implements Pipeline {
             .pipe(
                 mergeMap(root => {
                     if(root.endsWith(this.projectName)) {
+                        console.log('Found my root, looking for the next root', root, Path.dirname(root));
                         return this.fileUtil.traverseBackUntil(Path.dirname(root), '.git');
                     } else {
                         return of(root);
