@@ -7,7 +7,6 @@ import { Pipeline } from '../interfaces/Pipeline';
 import { PipelineItem } from '../interfaces/Pipeline.Item';
 import { Runnable, RunnableConstructor } from '../interfaces/Runnable';
 
-
 @injectable()
 export class PipelineImpl implements Pipeline {
 
